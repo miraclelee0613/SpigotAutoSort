@@ -1,9 +1,11 @@
 package github.curtisdh.autosort;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -30,21 +32,37 @@ public class onSignRightClick implements Listener
             String[] signContent = sign.getLines();
             for (String content : signContent)
             {
-                AutoSort.PrintWithClassName(this,content);
-                if(content.equalsIgnoreCase("[ChestMaster]"))
+                AutoSort.PrintWithClassName(this, content);
+                if (content.equalsIgnoreCase("[ChestMaster]"))
                 {
-                    player.sendMessage("Correct");
                     Chest chest = GetChestFromBelowSign(block.getLocation());
-                    if(chest == null)
+                    if (chest == null)
                     {
-                        player.sendMessage(ChatColor.RED+"No chest found. Is the chest directly under the sign?");
+                        player.sendMessage(ChatColor.RED + "No chest found. Is the chest directly under the sign?");
                         return;
+                    }
+                    //Need a less 'expensive' way to search chunks. (Only chunks around the interacted sign?)
+                    Chunk chunks[] = block.getWorld().getLoadedChunks();
+                    for (Chunk chunk : chunks)
+                    {
+                        for (BlockState blockState : chunk.getTileEntities())
+                        {
+                            if(blockState instanceof Sign)
+                            {
+                                Sign t = (Sign)blockState.getBlock().getState();
+                                player.sendMessage(t.getLines());
+                            }
+                        }
                     }
                 }
             }
         }
 
     }
+//    private Sign[] GetSignsInRadius()
+//    {
+//
+//    }
     private Chest GetChestFromBelowSign(Location loc)
     {
         Chest chest = null;
