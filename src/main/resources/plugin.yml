@@ -1,0 +1,5 @@
+name: AutoSort
+version: '${project.version}'
+main: github.curtisdh.autosort.AutoSort
+api-version: 1.18
+description: A plugin which allows players to automatically sort items into appropriate chests

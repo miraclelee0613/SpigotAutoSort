@@ -1,0 +1,18 @@
+settings:
+  valid_signs:
+    OAK_WALL_SIGN:
+      valid: true
+    SPRUCE_WALL_SIGN:
+      valid: true
+    BIRCH_WALL_SIGN:
+      valid: true
+    JUNGLE_WALL_SIGN:
+      valid: true
+    ACACIA_WALL_SIGN:
+      valid: true
+    DARK_OAK_WALL_SIGN:
+      valid: true
+    CRIMSON_WALL_SIGN:
+      valid: true
+    WARPED_WALL_SIGN:
+      valid: true
