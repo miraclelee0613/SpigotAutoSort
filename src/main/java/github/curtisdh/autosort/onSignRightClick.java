@@ -1,37 +1,76 @@
 package github.curtisdh.autosort;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
+import org.bukkit.block.Sign;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import java.util.Locale;
 import java.util.Map;
 
 public class onSignRightClick implements Listener
 {
-    private Map<String,BlockData> blockDataMap;
+    private Map<String, BlockData> blockDataMap;
+
     @EventHandler
     public void SignRightClick(PlayerInteractEvent event)
     {
-        if(IsSignValid(event.getClickedBlock().getType()))
+        Block block = event.getClickedBlock();
+        Player player = event.getPlayer();
+        if (IsSignValid(block.getType()))
         {
             AutoSort.PrintWithClassName(this, "Valid Sign");
+            Sign sign = (Sign) block.getState();
+            String[] signContent = sign.getLines();
+            for (String content : signContent)
+            {
+                AutoSort.PrintWithClassName(this,content);
+                if(content.equalsIgnoreCase("[ChestMaster]"))
+                {
+                    player.sendMessage("Correct");
+                    Chest chest = GetChestFromBelowSign(block.getLocation());
+                    if(chest == null)
+                    {
+                        player.sendMessage(ChatColor.RED+"No chest found. Is the chest directly under the sign?");
+                        return;
+                    }
+                }
+            }
         }
 
     }
-    public void SetBlockDataMap(Map<String,BlockData> map)
+    private Chest GetChestFromBelowSign(Location loc)
+    {
+        Chest chest = null;
+        try
+        {
+            chest = (Chest) loc.subtract(0, 1, 0).getBlock().getState();
+        } finally
+        {
+            return chest;
+        }
+    }
+
+    public void SetBlockDataMap(Map<String, BlockData> map)
     {
         blockDataMap = map;
     }
+
     private boolean IsSignValid(Material sign)
     {
         for (Map.Entry<String, BlockData> validSignEntries : blockDataMap.entrySet())
         {
-            if(!validSignEntries.getValue().validSign)
+            if (!validSignEntries.getValue().validSign)
             {
                 return false;
             }
-            if(validSignEntries.getValue().material == sign)
+            if (validSignEntries.getValue().material == sign)
             {
                 return true;
             }
