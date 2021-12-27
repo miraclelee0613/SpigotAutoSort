@@ -94,14 +94,20 @@ public class onSignRightClick implements Listener
                             continue;
                         }
                         int stackCount = item.getAmount();
-                        //Calc difference
                         for (ItemStack storageItem : StorageChestAvailableItemStacks)
                         {
                             if (storageItem.getType() == item.getType())
                             {
-                                int difference = storageItem.getMaxStackSize() - storageItem.getAmount();
-                                item.setAmount(stackCount - difference);
-                                storageItem.setAmount(storageItem.getAmount() + difference);
+                                int availableRoom = storageItem.getMaxStackSize() - storageItem.getAmount();
+                                int difference = stackCount - availableRoom;
+                                if (stackCount > availableRoom)
+                                {
+                                    item.setAmount(difference);
+                                    storageItem.setAmount(availableRoom + difference);
+                                    continue;
+                                }
+                                item.setAmount(0);
+                                storageItem.setAmount(storageItem.getAmount() + stackCount);
                             }
                         }
                         SortToEmptySlots(mainChest, storageChest, item);
