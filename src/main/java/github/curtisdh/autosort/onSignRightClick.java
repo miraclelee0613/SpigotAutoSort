@@ -1,9 +1,6 @@
 package github.curtisdh.autosort;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
@@ -13,13 +10,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class onSignRightClick implements Listener
 {
     private Map<String, BlockData> blockDataMap;
+    private int searchRadius = 5; //TODO put search radius in config
+    private String MasterChest = "[ChestMain]";
+    private String StorageChest = "[ChestStorage]";
 
+    //TODO when right clicking on a storage chest attempt to find the master chest and relay that info back to player
     @EventHandler
     public void SignRightClick(PlayerInteractEvent event)
     {
@@ -33,7 +33,7 @@ public class onSignRightClick implements Listener
             for (String content : signContent)
             {
                 AutoSort.PrintWithClassName(this, content);
-                if (content.equalsIgnoreCase("[ChestMaster]"))
+                if (content.equalsIgnoreCase(MasterChest))
                 {
                     Chest chest = GetChestFromBelowSign(block.getLocation());
                     if (chest == null)
@@ -41,28 +41,60 @@ public class onSignRightClick implements Listener
                         player.sendMessage(ChatColor.RED + "No chest found. Is the chest directly under the sign?");
                         return;
                     }
-                    //Need a less 'expensive' way to search chunks. (Only chunks around the interacted sign?)
-                    Chunk chunks[] = block.getWorld().getLoadedChunks();
-                    for (Chunk chunk : chunks)
+
+                    Collection<Chunk> SurroundingChunks = GetSurroundingChunks(block.getChunk(), searchRadius);
+                    for (Chunk chunk : SurroundingChunks)
                     {
                         for (BlockState blockState : chunk.getTileEntities())
                         {
-                            if(blockState instanceof Sign)
+                            if (blockState instanceof Sign)
                             {
-                                Sign t = (Sign)blockState.getBlock().getState();
-                                player.sendMessage(t.getLines());
+                                Sign t = (Sign) blockState.getBlock().getState();
+                                for (String message : t.getLines())
+                                {
+                                    if (message.equalsIgnoreCase("[ChestStorage]"))
+                                    {
+                                        Chest c = GetChestFromBelowSign(t.getLocation());
+                                        if (c == null)
+                                        {
+                                            Location loc = t.getLocation();
+                                            String locString = loc.getX() + " " + loc.getY() + " " + loc.getZ();
+                                            player.sendMessage(ChatColor.RED + "ChestStorage sign has no Chest! " +
+                                                    ChatColor.YELLOW + "Location:" + locString);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
-
     }
-//    private Sign[] GetSignsInRadius()
-//    {
-//
-//    }
+
+    private Collection<Chunk> GetSurroundingChunks(Chunk c, int searchRadius)
+    {
+        World world = c.getWorld();
+        int baseX = c.getX();
+        int baseZ = c.getZ();
+
+        Collection<Chunk> chunksAroundPlayer = new HashSet<>();
+        for (int i = 0; i < searchRadius; i++)
+        {
+            int[] offset = {-i, 0, i};
+            for (int x : offset)
+            {
+                for (int z : offset)
+                {
+                    Chunk chunk = world.getChunkAt(baseX + x, baseZ + z);
+                    chunksAroundPlayer.add(chunk);
+                    AutoSort.PrintWithClassName(this, "Surrounding Chunk:" + chunk);
+                }
+            }
+        }
+        return chunksAroundPlayer;
+    }
+
     private Chest GetChestFromBelowSign(Location loc)
     {
         Chest chest = null;
@@ -94,45 +126,5 @@ public class onSignRightClick implements Listener
             }
         }
         return false;
-
-//        switch (sign) //Loop over a config
-//        {
-//            case OAK_WALL_SIGN:
-//                AutoSort.PrintWithClassName(this, "OAK_SIGN");
-//                return true;
-//            case SPRUCE_WALL_SIGN:
-//                AutoSort.PrintWithClassName(this, "SPRUCE_SIGN");
-//                return true;
-//            case BIRCH_WALL_SIGN:
-//                AutoSort.PrintWithClassName(this, "BIRCH_SIGN");
-//                return true;
-//            case JUNGLE_WALL_SIGN:
-//                AutoSort.PrintWithClassName(this, "JUNGLE_SIGN");
-//                return true;
-//            case ACACIA_WALL_SIGN:
-//                AutoSort.PrintWithClassName(this, "ACACIA_SIGN");
-//                return true;
-//            case DARK_OAK_WALL_SIGN:
-//                AutoSort.PrintWithClassName(this, "DARK_OAK_SIGN");
-//                return true;
-//            case CRIMSON_WALL_SIGN:
-//                AutoSort.PrintWithClassName(this, "CRIMSON_SIGN");
-//                return true;
-//            case WARPED_WALL_SIGN:
-//                AutoSort.PrintWithClassName(this, "WARPED_SIGN");
-//                return true;
-//            default:
-//                return false;
-//        }
     }
-    /*
-    Inspiration: https://www.spigotmc.org/resources/mondochest.22109/
-    Okay so the way this is gonna work is we create a sign that has to have a fixed sentence on it
-    [chestMaster], this is where all the items the player wants to sort/dump will be put into.
-    Other chests with the relevant items will be assigned with [chestSlave]. When the [chestMaster] sign is right
-    clicked, all the relevant items will be moved from the master chest to the slave chest (if it contains said items).
-
-    How do we associate chests with players? -- Actually I dont think we need to. If the sign has attached chests
-    then it may already be able to contain all the data for us.
-     */
 }
