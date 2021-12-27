@@ -1,5 +1,5 @@
 settings:
-  valid_signs:
+  valid_signs: #If there are additional signs added to minecraft you should be able to add them here.
     OAK_WALL_SIGN:
       valid: true
     SPRUCE_WALL_SIGN:
@@ -16,3 +16,10 @@ settings:
       valid: true
     WARPED_WALL_SIGN:
       valid: true
+  ChestSettings: # Contains all relevant chest settings
+    MasterChest: # This is the name of the main storage chest that is used for dumping items into.
+      name: "[ChestMain]"
+    StorageChest: # This is the name of the storage chest that items will be put into
+      name: "[ChestStorage]"
+    SearchRadius: ## WARNING  Setting this too high may cause strain on the server ##
+      range: 5 # This is the amount chunks around the player that will be searched to find storage chests.

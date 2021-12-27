@@ -15,7 +15,7 @@ import java.util.*;
 public class onSignRightClick implements Listener
 {
     private Map<String, BlockData> blockDataMap;
-    private int searchRadius = 5; //TODO put search radius in config
+    private int SearchRadius = 5; //TODO put search radius in config
     private String MasterChest = "[ChestMain]";
     private String StorageChest = "[ChestStorage]";
 
@@ -42,7 +42,7 @@ public class onSignRightClick implements Listener
                         return;
                     }
 
-                    Collection<Chunk> SurroundingChunks = GetSurroundingChunks(block.getChunk(), searchRadius);
+                    Collection<Chunk> SurroundingChunks = GetSurroundingChunks(block.getChunk(), SearchRadius);
                     for (Chunk chunk : SurroundingChunks)
                     {
                         for (BlockState blockState : chunk.getTileEntities())
@@ -52,7 +52,7 @@ public class onSignRightClick implements Listener
                                 Sign t = (Sign) blockState.getBlock().getState();
                                 for (String message : t.getLines())
                                 {
-                                    if (message.equalsIgnoreCase("[ChestStorage]"))
+                                    if (message.equalsIgnoreCase(StorageChest))
                                     {
                                         Chest c = GetChestFromBelowSign(t.getLocation());
                                         if (c == null)
@@ -110,6 +110,12 @@ public class onSignRightClick implements Listener
     public void SetBlockDataMap(Map<String, BlockData> map)
     {
         blockDataMap = map;
+    }
+    public void LoadChestSettings(int searchRadius, String mainChest, String storageChest)
+    {
+        StorageChest = storageChest;
+        SearchRadius = searchRadius;
+        MasterChest = mainChest;
     }
 
     private boolean IsSignValid(Material sign)

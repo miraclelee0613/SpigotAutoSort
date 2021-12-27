@@ -60,6 +60,11 @@ public final class AutoSort extends JavaPlugin
             blockData.put(key,data);
         }
         SignClickEvent.SetBlockDataMap(blockData);
+        // Might be a better way to load this.
+        String searchRadiusObj = getConfig().getString("settings.ChestSettings.SearchRadius.range");
+        String storageChestObj = getConfig().getString("settings.ChestSettings.StorageChest.name");
+        String masterChestObj = getConfig().getString("settings.ChestSettings.MasterChest.name");
+        SignClickEvent.LoadChestSettings(Integer.parseInt(searchRadiusObj),masterChestObj,storageChestObj);
         saveConfig();
         PrintWithClassName(this, "-Loaded Config-");
     }
