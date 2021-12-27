@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
@@ -21,55 +22,90 @@ public class onSignRightClick implements Listener
 
     //TODO when right clicking on a storage chest attempt to find the master chest and relay that info back to player
     @EventHandler
-    public void SignRightClick(PlayerInteractEvent event)
+    public void SignRightClick(PlayerInteractEvent event) //TODO event gets fired if sign is destroyed.
     {
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
-        if (IsSignValid(block.getType()))
+        if (!IsSignValid(block.getType()))
         {
-            AutoSort.PrintWithClassName(this, "Valid Sign");
-            Sign sign = (Sign) block.getState();
-            String[] signContent = sign.getLines();
-            for (String content : signContent)
+            return;
+        }
+        AutoSort.PrintWithClassName(this, "Valid Sign");
+        Sign sign = (Sign) block.getState();
+        String[] signContent = sign.getLines();
+        for (String content : signContent)
+        {
+            AutoSort.PrintWithClassName(this, content);
+            if (content.equalsIgnoreCase(MasterChest))
             {
-                AutoSort.PrintWithClassName(this, content);
-                if (content.equalsIgnoreCase(MasterChest))
+                Chest mainChest = GetChestFromBelowSign(block.getLocation());
+                if (mainChest == null)
                 {
-                    Chest chest = GetChestFromBelowSign(block.getLocation());
-                    if (chest == null)
+                    player.sendMessage(ChatColor.RED + "No chest found. Is the chest directly under the sign?");
+                    return;
+                }
+                Collection<Sign> signs = SearchChunksForRelevantSigns(
+                        GetSurroundingChunks(block.getChunk(), SearchRadius));
+                if (signs.isEmpty())
+                {
+                    player.sendMessage(ChatColor.RED + "No nearby " + StorageChest + " signs");
+                    return;
+                }
+                for (Sign s : signs)
+                {
+                    Chest storageChest = GetChestFromBelowSign(s.getLocation());
+                    if (storageChest == null)
                     {
-                        player.sendMessage(ChatColor.RED + "No chest found. Is the chest directly under the sign?");
-                        return;
+                        Location loc = sign.getLocation();
+                        String locString = loc.getX() + " " + loc.getY() + " " + loc.getZ();
+                        player.sendMessage(ChatColor.RED + StorageChest + " sign has no Chest! " +
+                                ChatColor.YELLOW + "Location:" + locString);
+                        continue;
                     }
-
-                    Collection<Chunk> SurroundingChunks = GetSurroundingChunks(block.getChunk(), SearchRadius);
-                    for (Chunk chunk : SurroundingChunks)
+                    player.sendMessage("test");
+                    //TODO Only move items if storage chest has enough room
+                    //TODO only move items from main chest that already exist in the storage chest
+                    if (storageChest.getInventory().isEmpty())
                     {
-                        for (BlockState blockState : chunk.getTileEntities())
+                        for (ItemStack item :mainChest.getInventory().getContents())
                         {
-                            if (blockState instanceof Sign)
+                            if(item == null)
                             {
-                                Sign t = (Sign) blockState.getBlock().getState();
-                                for (String message : t.getLines())
-                                {
-                                    if (message.equalsIgnoreCase(StorageChest))
-                                    {
-                                        Chest c = GetChestFromBelowSign(t.getLocation());
-                                        if (c == null)
-                                        {
-                                            Location loc = t.getLocation();
-                                            String locString = loc.getX() + " " + loc.getY() + " " + loc.getZ();
-                                            player.sendMessage(ChatColor.RED + "ChestStorage sign has no Chest! " +
-                                                    ChatColor.YELLOW + "Location:" + locString);
-                                        }
-                                    }
-                                }
+                                continue;
                             }
+
+                            storageChest.getInventory().addItem(item);
+                            mainChest.getInventory().removeItem(item);
+                        }
+                    }
+                }
+
+            }
+        }
+
+    }
+
+    private Collection<Sign> SearchChunksForRelevantSigns(Collection<Chunk> chunks)
+    {
+        Collection<Sign> signs = new HashSet<>();
+        for (Chunk chunk : chunks)
+        {
+            for (BlockState blockState : chunk.getTileEntities())
+            {
+                if (blockState instanceof Sign)
+                {
+                    Sign sign = (Sign) blockState.getBlock().getState();
+                    for (String message : sign.getLines())
+                    {
+                        if (message.equalsIgnoreCase(StorageChest))
+                        {
+                            signs.add(sign);
                         }
                     }
                 }
             }
         }
+        return signs;
     }
 
     private Collection<Chunk> GetSurroundingChunks(Chunk c, int searchRadius)
@@ -88,7 +124,6 @@ public class onSignRightClick implements Listener
                 {
                     Chunk chunk = world.getChunkAt(baseX + x, baseZ + z);
                     chunksAroundPlayer.add(chunk);
-                    AutoSort.PrintWithClassName(this, "Surrounding Chunk:" + chunk);
                 }
             }
         }
@@ -111,6 +146,7 @@ public class onSignRightClick implements Listener
     {
         blockDataMap = map;
     }
+
     public void LoadChestSettings(int searchRadius, String mainChest, String storageChest)
     {
         StorageChest = storageChest;

@@ -11,6 +11,7 @@ public final class AutoSort extends JavaPlugin
 {
     public static AutoSort Instance;
     private onSignRightClick SignClickEvent;
+
     @Override
     public void onEnable()
     {
@@ -32,13 +33,13 @@ public final class AutoSort extends JavaPlugin
 
     private void SetupCommands()
     {
-        PrintWithClassName(this,"Setting up commands...");
+        PrintWithClassName(this, "Setting up commands...");
     }
 
     private void EventsSetup()
     {
-        PrintWithClassName(this,"Setting up Events...");
-        getServer().getPluginManager().registerEvents(SignClickEvent,this);
+        PrintWithClassName(this, "Setting up Events...");
+        getServer().getPluginManager().registerEvents(SignClickEvent, this);
     }
 
     public void LoadConfig()
@@ -49,22 +50,22 @@ public final class AutoSort extends JavaPlugin
         for (String key : getConfig().getConfigurationSection("settings.valid_signs").getKeys(false))
         {
             BlockData data;
-            Object validSignObj = getConfig().getConfigurationSection("settings.valid_signs."+key)
+            Object validSignObj = getConfig().getConfigurationSection("settings.valid_signs." + key)
                     .getValues(true).get("valid");
 
             boolean validSign = validSignObj.toString().equalsIgnoreCase("true");
             key = key.toUpperCase(Locale.ROOT);
             data = new BlockData(validSign, Material.valueOf(key));
-            PrintWithClassName(this,"Loading Config:"+key+" "
-                    +data.validSign);
-            blockData.put(key,data);
+            PrintWithClassName(this, "Loading Config:" + key + " "
+                    + data.validSign);
+            blockData.put(key, data);
         }
         SignClickEvent.SetBlockDataMap(blockData);
         // Might be a better way to load this.
         String searchRadiusObj = getConfig().getString("settings.ChestSettings.SearchRadius.range");
         String storageChestObj = getConfig().getString("settings.ChestSettings.StorageChest.name");
         String masterChestObj = getConfig().getString("settings.ChestSettings.MasterChest.name");
-        SignClickEvent.LoadChestSettings(Integer.parseInt(searchRadiusObj),masterChestObj,storageChestObj);
+        SignClickEvent.LoadChestSettings(Integer.parseInt(searchRadiusObj), masterChestObj, storageChestObj);
         saveConfig();
         PrintWithClassName(this, "-Loaded Config-");
     }
