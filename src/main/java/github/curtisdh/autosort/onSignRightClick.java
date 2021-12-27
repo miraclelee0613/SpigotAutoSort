@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
@@ -19,6 +20,7 @@ public class onSignRightClick implements Listener
     private int SearchRadius = 5; //TODO put search radius in config
     private String MasterChest = "[ChestMain]";
     private String StorageChest = "[ChestStorage]";
+    private boolean SortToAnyEmptySlots = false;
 
     //TODO when right clicking on a storage chest attempt to find the master chest and relay that info back to player
     @EventHandler
@@ -62,27 +64,101 @@ public class onSignRightClick implements Listener
                                 ChatColor.YELLOW + "Location:" + locString);
                         continue;
                     }
-                    player.sendMessage("test");
                     //TODO Only move items if storage chest has enough room
                     //TODO only move items from main chest that already exist in the storage chest
-                    if (storageChest.getInventory().isEmpty())
-                    {
-                        for (ItemStack item :mainChest.getInventory().getContents())
-                        {
-                            if(item == null)
-                            {
-                                continue;
-                            }
 
-                            storageChest.getInventory().addItem(item);
-                            mainChest.getInventory().removeItem(item);
+
+                    //determine if an empty slot is available
+                    //determine what items can be added to existing stacks & the quantity
+
+
+                    Inventory storageChestInv = storageChest.getInventory();
+                    Collection<ItemStack> StorageChestAvailableItemStacks = new HashSet<>();
+                    for (ItemStack storageChestItemStack : storageChestInv.getContents())
+                    {
+                        if (storageChestItemStack == null)
+                        {
+                            continue;
+                        }
+                        if (storageChestItemStack.getAmount() < storageChestItemStack.getMaxStackSize())
+                        {
+                            StorageChestAvailableItemStacks.add(storageChestItemStack);
                         }
                     }
+
+
+                    for (ItemStack item : mainChest.getInventory().getContents())
+                    {
+                        if (item == null) //Empty slot
+                        {
+                            continue;
+                        }
+                        int stackCount = item.getAmount();
+                        //Calc difference
+                        for (ItemStack storageItem : StorageChestAvailableItemStacks)
+                        {
+                            if (storageItem.getType() == item.getType())
+                            {
+                                int difference = storageItem.getMaxStackSize() - storageItem.getAmount();
+                                item.setAmount(stackCount - difference);
+                                storageItem.setAmount(storageItem.getAmount() + difference);
+                            }
+                        }
+                        SortToEmptySlots(mainChest, storageChest, item);
+                    }
+
                 }
 
             }
         }
+    }
 
+    private void SortToEmptySlots(Chest mainChest, Chest storageChest, ItemStack item)
+    {
+        if (ChestHasEmptySpace(storageChest))
+        {
+            if (ChestContainsSameMaterial(storageChest, mainChest))
+            {
+                storageChest.getInventory().addItem(item);
+                mainChest.getInventory().removeItem(item);
+            }
+            if (SortToAnyEmptySlots)
+            {
+                storageChest.getInventory().addItem(item);
+                mainChest.getInventory().removeItem(item);
+            }
+        }
+    }
+
+    private boolean ChestHasEmptySpace(Chest chest) // Probably need to rework this, doesnt determine how much room
+    {
+        for (ItemStack storageStack : chest.getInventory().getContents())
+        {
+            if (storageStack == null)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean ChestContainsSameMaterial(Chest mainChest, Chest storageChest)
+    {
+        for (ItemStack item : storageChest.getInventory().getContents())
+        {
+            if (item == null)
+                continue;
+            for (ItemStack mainItemStack : mainChest.getInventory().getContents())
+            {
+                if (mainItemStack == null)
+                    continue;
+                if (item.getType() == mainItemStack.getType())
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private Collection<Sign> SearchChunksForRelevantSigns(Collection<Chunk> chunks)
