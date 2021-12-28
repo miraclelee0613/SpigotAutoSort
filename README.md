@@ -4,12 +4,6 @@
 This plugin is an AutoSorting plugin which works by creating a "dumping chest" with other multiple connected chests which act as storage, 
 once the sign above the chest is interacted with (by right clicking) the contents of the chest will be sorted into chests designated as storage.
 
-## Motivation
-Couldn't be bothered to sort my chests so I wrote a plugin to do it for me instead.
-
-## Code style
-If you're using any code style like xo, standard etc. That will help others while contributing to your project. Ex. -
-
 ## Features
 - Sign interaction to trigger sorting
 - Dumping chest - The player can dump all their items into a single location and they will sorted into designated storage chests
