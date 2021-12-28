@@ -21,6 +21,8 @@ To setup Storage chests use '[ChestStorage]' and be within (default 5) chunks of
 
 ## Config options
 
+You can reload the config from the console or in game by running '/AutoSort:ReloadConfig'
+
 The default config looks like the following
 ```
 settings:
