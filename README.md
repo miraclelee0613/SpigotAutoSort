@@ -22,7 +22,7 @@ To setup Storage chests use '[ChestStorage]' and be within (default 5) chunks of
 ## Config options
 
 The default config looks like the following
-
+```
 settings:
   valid_signs: #If there are additional signs added to minecraft you should be able to add them here.
     OAK_WALL_SIGN:
@@ -49,3 +49,4 @@ settings:
     SearchRadius: ## WARNING  Setting this too high may cause strain on the server ##
       range: 5 # This is the amount chunks around the player that will be searched to find storage chests.
     SortToAnyEmptySlots: false # This will add items into any chest with space.
+```
