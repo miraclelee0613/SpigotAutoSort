@@ -28,16 +28,18 @@ public class onSignRightClick implements Listener
     {
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
+        if(block == null)
+        {
+            return;
+        }
         if (!IsSignValid(block.getType()))
         {
             return;
         }
-        AutoSort.PrintWithClassName(this, "Valid Sign");
         Sign sign = (Sign) block.getState();
         String[] signContent = sign.getLines();
         for (String content : signContent)
         {
-            AutoSort.PrintWithClassName(this, content);
             if (content.equalsIgnoreCase(MasterChest))
             {
                 Chest mainChest = GetChestFromBelowSign(block.getLocation());
