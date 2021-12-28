@@ -246,11 +246,12 @@ public class onSignRightClick implements Listener
         blockDataMap = map;
     }
 
-    public void LoadChestSettings(int searchRadius, String mainChest, String storageChest)
+    public void LoadChestSettings(int searchRadius, String mainChest, String storageChest,boolean sortToAnyEmptySlots)
     {
         StorageChest = storageChest;
         SearchRadius = searchRadius;
         MasterChest = mainChest;
+        SortToAnyEmptySlots = sortToAnyEmptySlots;
     }
 
     private boolean IsSignValid(Material sign)

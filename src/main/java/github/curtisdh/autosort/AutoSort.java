@@ -65,7 +65,15 @@ public final class AutoSort extends JavaPlugin
         String searchRadiusObj = getConfig().getString("settings.ChestSettings.SearchRadius.range");
         String storageChestObj = getConfig().getString("settings.ChestSettings.StorageChest.name");
         String masterChestObj = getConfig().getString("settings.ChestSettings.MasterChest.name");
-        SignClickEvent.LoadChestSettings(Integer.parseInt(searchRadiusObj), masterChestObj, storageChestObj);
+        String SortToAnyEmptySlots = getConfig().getString("settings.ChestSettings.SortToAnyEmptySlots");
+        boolean bSortToEmptySlots = SortToAnyEmptySlots.equalsIgnoreCase("true");
+        SignClickEvent.LoadChestSettings
+                (
+                Integer.parseInt(searchRadiusObj),
+                masterChestObj,
+                storageChestObj,
+                bSortToEmptySlots
+        );
         saveConfig();
         PrintWithClassName(this, "-Loaded Config-");
     }
