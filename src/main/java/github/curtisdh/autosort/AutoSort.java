@@ -34,6 +34,8 @@ public final class AutoSort extends JavaPlugin
     private void SetupCommands()
     {
         PrintWithClassName(this, "Setting up commands...");
+        getCommand("reloadConfig").setExecutor(new ReloadCommand());
+        PrintWithClassName(this,"Command: 'ReloadConfig' Setup Successfully");
     }
 
     private void EventsSetup()
