@@ -17,18 +17,17 @@ import java.util.*;
 public class onSignRightClick implements Listener
 {
     private Map<String, BlockData> blockDataMap;
-    private int SearchRadius = 5; //TODO put search radius in config
+    private int SearchRadius = 5;
     private String MasterChest = "[ChestMain]";
     private String StorageChest = "[ChestStorage]";
     private boolean SortToAnyEmptySlots = false;
 
-    //TODO when right clicking on a storage chest attempt to find the master chest and relay that info back to player
     @EventHandler
     public void SignRightClick(PlayerInteractEvent event) //TODO event gets fired if sign is destroyed.
     {
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
-        if(block == null)
+        if (block == null)
         {
             return;
         }
@@ -48,8 +47,9 @@ public class onSignRightClick implements Listener
                     player.sendMessage(ChatColor.RED + "No chest found. Is the chest directly under the sign?");
                     return;
                 }
-                Collection<Sign> signs = SearchChunksForRelevantSigns(
-                        GetSurroundingChunks(block.getChunk(), SearchRadius));
+                Collection<Sign> signs = SearchChunksForStringOnSign(
+                        GetSurroundingChunks(block.getChunk(), SearchRadius),
+                        StorageChest);
                 if (signs.isEmpty())
                 {
                     player.sendMessage(ChatColor.RED + "No nearby " + StorageChest + " signs");
@@ -61,59 +61,83 @@ public class onSignRightClick implements Listener
                     if (storageChest == null)
                     {
                         Location loc = sign.getLocation();
-                        String locString = loc.getX() + " " + loc.getY() + " " + loc.getZ();
+                        String locString = GetCoordinateStringFromLocation(sign.getLocation());
                         player.sendMessage(ChatColor.RED + StorageChest + " sign has no Chest! " +
                                 ChatColor.YELLOW + "Location:" + locString);
                         continue;
                     }
-                    //TODO Only move items if storage chest has enough room
-                    //TODO only move items from main chest that already exist in the storage chest
-
-
-                    //determine if an empty slot is available
-                    //determine what items can be added to existing stacks & the quantity
-
-
-//TODO this is still broken
-                    //Put two single items in a chest, add a stack of 64 and a stack of 62 to the master chest
-                    // then right click the sign twice and 3 of the items will have disappeared.
-
-                    // to fix the only stacking one stack onto existing stack use a for i loop. // dunno if this will work
-                    for (ItemStack item : mainChest.getInventory().getContents())
-                    {
-                        if (item == null) //Empty slot
-                        {
-                            continue;
-                        }
-                        List<ItemStack> StorageChestAvailableItemStacks =
-                                getValidStorageItemStacks(storageChest, item.getType());
-
-                        while (item.getAmount() > 0 && !StorageChestAvailableItemStacks.isEmpty())
-                        {
-
-                            int stackCount = item.getAmount();
-
-                            ItemStack storageItem = StorageChestAvailableItemStacks.get(0);
-                            int availableRoom = storageItem.getMaxStackSize() - storageItem.getAmount();
-                            int difference = stackCount - availableRoom;
-
-                            if (stackCount > availableRoom)
-                            {
-                                item.setAmount(difference);
-                                storageItem.setAmount(availableRoom + difference);
-                                StorageChestAvailableItemStacks.remove(0);
-                                continue;
-                            }
-                            item.setAmount(0);
-                            storageItem.setAmount(storageItem.getAmount() + stackCount);
-                            StorageChestAvailableItemStacks.remove(0);
-                        }
-                        SortToEmptySlots(mainChest, storageChest, item);
-                    }
+                    SortItems(mainChest, storageChest);
+                }
+                continue;
+            }
+            //Player right clicked a storage sign
+            if (content.equalsIgnoreCase(StorageChest))
+            {
+                Chest StorageChest = GetChestFromBelowSign(sign.getLocation());
+                if (StorageChest == null)
+                {
+                    player.sendMessage(ChatColor.RED + "No chest found. Is the chest directly under the sign?");
+                    return;
+                }
+                Collection<Sign> signs = SearchChunksForStringOnSign(GetSurroundingChunks(
+                        block.getChunk(), SearchRadius)
+                        , MasterChest);
+                if (signs.isEmpty())
+                {
+                    player.sendMessage(ChatColor.RED + MasterChest +
+                            ChatColor.YELLOW + " Sign not found. Is the sign in within "
+                            + ChatColor.RED + SearchRadius + ChatColor.YELLOW + " chunks?");
+                    return;
+                }
+                for (Sign s : signs)
+                {
+                    player.sendMessage(ChatColor.GREEN + "Found Sign:"
+                            + MasterChest + " at:" + ChatColor.YELLOW + GetCoordinateStringFromLocation(s.getLocation()));
 
                 }
-
             }
+        }
+    }
+
+    private String GetCoordinateStringFromLocation(Location location)
+    {
+        String str;
+        str = location.getX() +" " + location.getY() +" " + location.getZ();
+        return str;
+    }
+
+    private void SortItems(Chest mainChest, Chest storageChest)
+    {
+        for (ItemStack item : mainChest.getInventory().getContents())
+        {
+            if (item == null) //Empty slot
+            {
+                continue;
+            }
+            List<ItemStack> StorageChestAvailableItemStacks =
+                    getValidStorageItemStacks(storageChest, item.getType());
+
+            while (item.getAmount() > 0 && !StorageChestAvailableItemStacks.isEmpty())
+            {
+
+                int stackCount = item.getAmount();
+
+                ItemStack storageItem = StorageChestAvailableItemStacks.get(0);
+                int availableRoom = storageItem.getMaxStackSize() - storageItem.getAmount();
+                int difference = stackCount - availableRoom;
+
+                if (stackCount > availableRoom)
+                {
+                    item.setAmount(difference);
+                    storageItem.setAmount(availableRoom + difference);
+                    StorageChestAvailableItemStacks.remove(0);
+                    continue;
+                }
+                item.setAmount(0);
+                storageItem.setAmount(storageItem.getAmount() + stackCount);
+                StorageChestAvailableItemStacks.remove(0);
+            }
+            SortToEmptySlots(mainChest, storageChest, item);
         }
     }
 
@@ -184,7 +208,7 @@ public class onSignRightClick implements Listener
         return false;
     }
 
-    private Collection<Sign> SearchChunksForRelevantSigns(Collection<Chunk> chunks)
+    private Collection<Sign> SearchChunksForStringOnSign(Collection<Chunk> chunks, String str)
     {
         Collection<Sign> signs = new HashSet<>();
         for (Chunk chunk : chunks)
@@ -196,7 +220,7 @@ public class onSignRightClick implements Listener
                     Sign sign = (Sign) blockState.getBlock().getState();
                     for (String message : sign.getLines())
                     {
-                        if (message.equalsIgnoreCase(StorageChest))
+                        if (message.equalsIgnoreCase(str))
                         {
                             signs.add(sign);
                         }
@@ -246,7 +270,7 @@ public class onSignRightClick implements Listener
         blockDataMap = map;
     }
 
-    public void LoadChestSettings(int searchRadius, String mainChest, String storageChest,boolean sortToAnyEmptySlots)
+    public void LoadChestSettings(int searchRadius, String mainChest, String storageChest, boolean sortToAnyEmptySlots)
     {
         StorageChest = storageChest;
         SearchRadius = searchRadius;
