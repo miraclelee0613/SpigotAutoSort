@@ -72,43 +72,39 @@ public class onSignRightClick implements Listener
                     //determine what items can be added to existing stacks & the quantity
 
 
-                    Inventory storageChestInv = storageChest.getInventory();
-                    Collection<ItemStack> StorageChestAvailableItemStacks = new HashSet<>();
-                    for (ItemStack storageChestItemStack : storageChestInv.getContents())
-                    {
-                        if (storageChestItemStack == null)
-                        {
-                            continue;
-                        }
-                        if (storageChestItemStack.getAmount() < storageChestItemStack.getMaxStackSize())
-                        {
-                            StorageChestAvailableItemStacks.add(storageChestItemStack);
-                        }
-                    }
+//TODO this is still broken
+                    //Put two single items in a chest, add a stack of 64 and a stack of 62 to the master chest
+                    // then right click the sign twice and 3 of the items will have disappeared.
 
-
+                    // to fix the only stacking one stack onto existing stack use a for i loop. // dunno if this will work
                     for (ItemStack item : mainChest.getInventory().getContents())
                     {
                         if (item == null) //Empty slot
                         {
                             continue;
                         }
-                        int stackCount = item.getAmount();
-                        for (ItemStack storageItem : StorageChestAvailableItemStacks)
+                        List<ItemStack> StorageChestAvailableItemStacks =
+                                getValidStorageItemStacks(storageChest, item.getType());
+
+                        while (item.getAmount() > 0 && !StorageChestAvailableItemStacks.isEmpty())
                         {
-                            if (storageItem.getType() == item.getType())
+
+                            int stackCount = item.getAmount();
+
+                            ItemStack storageItem = StorageChestAvailableItemStacks.get(0);
+                            int availableRoom = storageItem.getMaxStackSize() - storageItem.getAmount();
+                            int difference = stackCount - availableRoom;
+
+                            if (stackCount > availableRoom)
                             {
-                                int availableRoom = storageItem.getMaxStackSize() - storageItem.getAmount();
-                                int difference = stackCount - availableRoom;
-                                if (stackCount > availableRoom)
-                                {
-                                    item.setAmount(difference);
-                                    storageItem.setAmount(availableRoom + difference);
-                                    continue;
-                                }
-                                item.setAmount(0);
-                                storageItem.setAmount(storageItem.getAmount() + stackCount);
+                                item.setAmount(difference);
+                                storageItem.setAmount(availableRoom + difference);
+                                StorageChestAvailableItemStacks.remove(0);
+                                continue;
                             }
+                            item.setAmount(0);
+                            storageItem.setAmount(storageItem.getAmount() + stackCount);
+                            StorageChestAvailableItemStacks.remove(0);
                         }
                         SortToEmptySlots(mainChest, storageChest, item);
                     }
@@ -117,6 +113,25 @@ public class onSignRightClick implements Listener
 
             }
         }
+    }
+
+    private List<ItemStack> getValidStorageItemStacks(Chest storageChest, Material mat)
+    {
+        Inventory storageChestInv = storageChest.getInventory();
+        List<ItemStack> StorageChestAvailableItemStacks = new ArrayList<>();
+        for (ItemStack storageChestItemStack : storageChestInv.getContents())
+        {
+            if (storageChestItemStack == null)
+            {
+                continue;
+            }
+            if (storageChestItemStack.getAmount() < storageChestItemStack.getMaxStackSize()
+                    && storageChestItemStack.getType() == mat)
+            {
+                StorageChestAvailableItemStacks.add(storageChestItemStack);
+            }
+        }
+        return StorageChestAvailableItemStacks;
     }
 
     private void SortToEmptySlots(Chest mainChest, Chest storageChest, ItemStack item)
