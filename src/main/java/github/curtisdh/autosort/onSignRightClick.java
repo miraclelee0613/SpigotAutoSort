@@ -61,7 +61,7 @@ public class onSignRightClick implements Listener
                     if (storageChest == null)
                     {
                         Location loc = sign.getLocation();
-                        String locString = GetCoordinateStringFromLocation(sign.getLocation());
+                        String locString = GetCoordinateStringFromLocation(loc);
                         player.sendMessage(ChatColor.RED + StorageChest + " sign has no Chest! " +
                                 ChatColor.YELLOW + "Location:" + locString);
                         continue;
@@ -102,7 +102,7 @@ public class onSignRightClick implements Listener
     private String GetCoordinateStringFromLocation(Location location)
     {
         String str;
-        str = location.getX() +" " + location.getY() +" " + location.getZ();
+        str = location.getX() + " " + location.getY() + " " + location.getZ();
         return str;
     }
 
@@ -137,7 +137,10 @@ public class onSignRightClick implements Listener
                 storageItem.setAmount(storageItem.getAmount() + stackCount);
                 StorageChestAvailableItemStacks.remove(0);
             }
-            SortToEmptySlots(mainChest, storageChest, item);
+            if (ChestContainsSameMaterial(mainChest, storageChest))
+            {
+                SortToEmptySlots(mainChest, storageChest, item);
+            }
         }
     }
 
@@ -162,7 +165,8 @@ public class onSignRightClick implements Listener
 
     private void SortToEmptySlots(Chest mainChest, Chest storageChest, ItemStack item)
     {
-        if (ChestHasEmptySpace(storageChest))
+        AutoSort.PrintWithClassName(this, item.getType().toString());
+        if (ChestHasEmptySpace(storageChest) && MaterialIsInChest(item.getType(), storageChest))
         {
             if (ChestContainsSameMaterial(storageChest, mainChest))
             {
@@ -188,6 +192,23 @@ public class onSignRightClick implements Listener
         }
         return false;
     }
+
+    private boolean MaterialIsInChest(Material material, Chest storageChest)
+    {
+        for (ItemStack mainItemStack : storageChest.getInventory().getContents())
+        {
+            if (mainItemStack == null)
+                continue;
+            AutoSort.PrintWithClassName(this, "Material:" + material.toString() +
+                    " MainItemStack:" + mainItemStack.getType().toString());
+            if (material == mainItemStack.getType())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private boolean ChestContainsSameMaterial(Chest mainChest, Chest storageChest)
     {
