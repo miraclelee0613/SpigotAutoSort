@@ -165,7 +165,6 @@ public class onSignRightClick implements Listener
 
     private void SortToEmptySlots(Chest mainChest, Chest storageChest, ItemStack item)
     {
-        AutoSort.PrintWithClassName(this, item.getType().toString());
         if (ChestHasEmptySpace(storageChest) && MaterialIsInChest(item.getType(), storageChest))
         {
             if (ChestContainsSameMaterial(storageChest, mainChest))
@@ -199,8 +198,6 @@ public class onSignRightClick implements Listener
         {
             if (mainItemStack == null)
                 continue;
-            AutoSort.PrintWithClassName(this, "Material:" + material.toString() +
-                    " MainItemStack:" + mainItemStack.getType().toString());
             if (material == mainItemStack.getType())
             {
                 return true;
