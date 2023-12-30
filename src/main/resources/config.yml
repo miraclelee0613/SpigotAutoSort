@@ -22,5 +22,5 @@ settings:
     StorageChest: # This is the name of the storage chest that items will be put into
       name: "[ChestStorage]"
     SearchRadius: ## WARNING  Setting this too high may cause strain on the server ##
-      range: 5 # This is the amount chunks around the player that will be searched to find storage chests.
+      range: 3 # This is the amount chunks around the player that will be searched to find storage chests.
     SortToAnyEmptySlots: false # This will add items into any chest with space.
